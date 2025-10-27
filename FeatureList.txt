@@ -1,0 +1,46 @@
+==============================
+Implemented Features
+==============================
+
+# Module 1
+1. Blender Exporter (Export.py)
+   - Implemented Python exporter script that reads objects, lights, and camera data from Blender
+     and writes them to a JSON-formatted ASCII file (scene.json).
+
+2. Camera Space Transformation
+   - Implemented camera.h / camera.cpp
+   - Camera class reads camera data (location, gaze, up, focal length, sensor size, resolution)
+     from exported JSON.
+   - Converts pixel coordinates (px, py) to world-space rays using a virtual pinhole camera model.
+   - Includes coordinate transformation: computes gaze, right, up vectors via cross products.
+   - Normalises vectors and supports arbitrary camera orientation.
+
+3. Image Read and Write
+   - Implemented image.h / image.cpp
+   - Supports reading and writing ASCII PPM (P3) images.
+   - Provides per-pixel manipulation through setPixel().
+   - Output verified with dirs.ppm file generated in Output/.
+
+# Module 2 (partial)
+1. Scene File Parser
+   - Implemented scene.h / scene.cpp
+   - Loads lights, spheres, cubes, and planes from the exported JSON file.
+   - Stores scene elements in structured C++ classes (Light, Sphere, Cube, Plane).
+   - Output confirmed via console print in main.cpp.
+
+2. Basic Rendering Framework
+   - Implemented main.cpp that:
+       • Loads camera and scene
+       • Iterates over pixels, generates rays per pixel
+       • Encodes ray direction as color for testing camera correctness
+       • Writes output to dirs.ppm
+
+==============================
+#Partial Features
+==============================
+
+- No geometric intersection routines yet (ray–sphere, ray–plane, ray–cube not implemented)
+- No acceleration structure
+- No shading, reflection, or refraction (Whitted-style)
+- No antialiasing, textures, or distributed ray tracing yet
+- Command line argument parsing not implemented yet

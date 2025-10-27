@@ -3,7 +3,7 @@
 #include <string>
 #include <algorithm>
 
-// 读整个文件为字符串
+// read the file as string
 static bool read_all(const std::string& path, std::string& out){
     std::ifstream f(path);
     if(!f.is_open()) return false;
@@ -11,7 +11,7 @@ static bool read_all(const std::string& path, std::string& out){
     return true;
 }
 
-// 从 key 开始找到对应的数组片段内容（key: "lights"/"spheres"/"cubes"/"planes"）
+
 static bool extract_array(const std::string& s, const std::string& key, std::string& out){
     std::string k = "\"" + key + "\"";
     size_t p = s.find(k);
@@ -27,12 +27,12 @@ static bool extract_array(const std::string& s, const std::string& key, std::str
             if(depth==0){ q++; break; }
         }
     }
-    if(depth!=0) return false; // 没配平
-    out = s.substr(p+1, q-p-2); // 去掉首尾[]本身
+    if(depth!=0) return false; 
+    out = s.substr(p+1, q-p-2); 
     return true;
 }
 
-// 统计子串出现次数
+
 static int count_occurs(const std::string& s, const std::string& pat){
     int cnt = 0;
     size_t pos = 0;
@@ -47,16 +47,16 @@ static int count_occurs(const std::string& s, const std::string& pat){
 
 int main(){
     std::string text;
-    if(!read_all("../ASCII/scene.json", text)){ // ✅ 路径改到 ASCII
+    if(!read_all("../ASCII/scene.json", text)){ 
         std::cerr << "Failed to open ../ASCII/scene.json\n";
         return 1;
     }
 
-    // 有无相机
-    bool has_cam = (text.find("\"camera\"") != std::string::npos);
-    std::cout << (has_cam ? "Camera found ✅" : "No camera ❌") << "\n";
 
-    // lights/spheres/cubes/planes 数量（数各自数组里对象的 "name"/"type" 关键字）
+    bool has_cam = (text.find("\"camera\"") != std::string::npos);
+    std::cout << (has_cam ? "Camera found " : "No camera ") << "\n";
+
+
     std::string arr;
 
     int nLights = 0;

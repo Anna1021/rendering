@@ -5,46 +5,51 @@
 #include <algorithm>
 #include <cmath>
 
-// 从 JSON 文件加载相机参数
-bool Camera::loadFromJSON(const std::string& filename){
-    std::ifstream f(filename);
-    if(!f.is_open()) return false;
-    std::string data((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
+// load from json
+bool Camera::loadFromJSON(const std::string& path) {
+    std::ifstream file(path);
+    if (!file.is_open()) return false;
 
-    // 提取相机参数
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string data = buffer.str();
+
     if(!extractArray3(data,"location",pos)) return false;
     if(!extractArray3(data,"gaze",gaze)) return false;
+    extractArray3(data,"up",up); // optional, fallback to {0,1,0}
     if(!extractNumber(data,"focal_length",focal)) return false;
     if(!extractNumber(data,"sensor_width",sensorW)) return false;
     if(!extractNumber(data,"sensor_height",sensorH)) return false;
     if(!extractInt2(data,"resolution",width,height)) return false;
 
-    // 单位化 gaze
-    float len = std::sqrt(gaze[0]*gaze[0] + gaze[1]*gaze[1] + gaze[2]*gaze[2]);
-    if(len > 0.0f) {
-        for(int i=0;i<3;i++) gaze[i] /= len;
-    }
+    // --- normalize gaze & up
+    auto normalize3 = [](std::array<float,3>& v){
+        float len = std::sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+        if(len > 0.0f) for(int i=0;i<3;i++) v[i] /= len;
+    };
+    normalize3(gaze);
+    normalize3(up);
 
-    // 计算 right 和 up
-    std::array<float,3> worldUp = {0,1,0};
-    // right = gaze × worldUp
-    right = {gaze[1]*worldUp[2] - gaze[2]*worldUp[1],
-             gaze[2]*worldUp[0] - gaze[0]*worldUp[2],
-             gaze[0]*worldUp[1] - gaze[1]*worldUp[0]};
-    float rlen = std::sqrt(right[0]*right[0] + right[1]*right[1] + right[2]*right[2]);
-    if(rlen > 0.0f){
-        for(int i=0;i<3;i++) right[i] /= rlen;
-    }
-    // up = right × gaze
-    up = {right[1]*gaze[2] - right[2]*gaze[1],
-          right[2]*gaze[0] - right[0]*gaze[2],
-          right[0]*gaze[1] - right[1]*gaze[0]};
+    // --- compute right = gaze × up
+    right = {
+        gaze[1]*up[2] - gaze[2]*up[1],
+        gaze[2]*up[0] - gaze[0]*up[2],
+        gaze[0]*up[1] - gaze[1]*up[0]
+    };
+    normalize3(right);
 
+    // --- recompute up = right × gaze
+    up = {
+        right[1]*gaze[2] - right[2]*gaze[1],
+        right[2]*gaze[0] - right[0]*gaze[2],
+        right[0]*gaze[1] - right[1]*gaze[0]
+    };
     return true;
 }
 
+
 // ========================
-// 辅助解析函数
+// helper function
 // ========================
 bool Camera::extractArray3(const std::string& s, const std::string& key, std::array<float,3>& out){
     auto k = "\"" + key + "\"";
